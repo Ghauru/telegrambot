@@ -12,17 +12,15 @@ def parse_data(html: str) -> str:
     links = []
     with open("page.html", encoding="utf8") as fp:
         soup = BeautifulSoup(fp, 'html.parser')
-        div1 = soup.select("div.widget-search-result-container > div > div")
+        '''div1 = soup.select("div.widget-search-result-container > div > div")
         div1 = str(div1)
         div1 = div1[div1.find("\""):div1.find(">")]
-        div1 = div1.split()[0][1:]
-
+        div1 = div1.split()[0][1:]'''
         products = soup.find("div", attrs={"class", "widget-search-result-container"}).find_all("a")
-        print(products)
         for product in products:
             links.append(product.get('href').split('?')[0])
-    print(links)
     return set(links)
+
 
 def parse_links():
     pages = get_pages()
