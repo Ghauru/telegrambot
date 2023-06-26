@@ -2,7 +2,6 @@ import telebot
 from ozon.main import parse
 import sqlite3
 import config
-import requests
 
 sqlite_connect = sqlite3.connect('users.db', check_same_thread=False)
 sqlite_create_table = 'CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, telegram_id INTEGER UNIQUE,' \
@@ -61,11 +60,7 @@ def bot_message(message):
     best_choice = parse(message.text, message.from_user.id)
     with open("ozon-result.csv", "rb") as file:
         bot.send_document(message.from_user.id, file)
-    bot.send_message(message.from_user.id, "Лучший результат: ")
-    '''p = requests.get(best_choice['photo'])
-    out = open("img.jpg", "wb")
-    out.write(p.content)
-    out.close()'''
+    bot.send_message(message.from_user.id, "Лучшие 5 результатов: ")
     bot.send_photo(message.from_user.id, best_choice['photo'], caption=best_choice['title'] + '\nЦена ' + str(best_choice['price']) + '\n' + best_choice['url'])
 
 

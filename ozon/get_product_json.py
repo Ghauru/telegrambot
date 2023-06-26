@@ -12,7 +12,6 @@ def data_parsing(products: list, i: int) -> None:
         urls.append('https://www.ozon.ru/api/composer-api.bx/page/json/v2' \
           f'?url={products[i-1]}')
         urls[i-1] = urls[i-1][:-2]
-    print(urls)
     UseSelenium(urls, filename).multi_save()
 
 def parse_json():
