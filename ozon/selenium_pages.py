@@ -2,6 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 import time
 
+
 class UseSelenium:
     def __init__(self, url: str, filename: str):
         self.url = url

@@ -24,3 +24,4 @@ trio==0.22.0
 urllib3==2.0.3
 wheel==0.40.0
 wsproto==1.2.0
+pandas~=2.0.2

@@ -5,8 +5,8 @@ from ozon.csv_handler import CsvHandler
 import sqlite3
 
 
-def get_products() -> list:
-    return glob.glob('products/*.html')
+def get_products(user_id) -> list:
+    return glob.glob(str(user_id) + '/products/*.html')
 
 
 def get_json(filename: str) -> dict:
@@ -39,45 +39,68 @@ def parse_data(data: dict) -> dict:
     return product
 
 
-def parse_product(id):
-    best_choice = {'price': 99999999}
-    result_filename = 'ozon_result.csv'
+def parse_product(user_id):
+    result_filename = str(user_id) + '/ozon_result.csv'
     CsvHandler(result_filename).create_headers_csv_semicolon(['title', 'price', 'photo', 'url'])
-    products = get_products()
+    products = get_products(user_id)
     for product in products:
         try:
-            product_json = get_json(product)
+            product_json = get_json(user_id + '/' + product)
             result = parse_data(product_json)
             conn = sqlite3.connect('users.db')
             cursor = conn.cursor()
-            cursor.execute('SELECT MAX(price1, price2, price3, price4, price5) FROM users')
+            cursor.execute(f'SELECT price FROM users WHERE telegram_id = "{user_id}"')
+            price = cursor.fetchone()[0]
+            cursor.execute(f'SELECT MAX(price1, price2, price3, price4, price5) FROM users WHERE telegram_id = "{user_id}"')
             max_value = cursor.fetchone()[0]
-            cursor.execute('''
-                SELECT 
-                    CASE
-                        WHEN MAX(price1, price2, price3, price4, price5) = price1 THEN 'price1'
-                        WHEN MAX(price1, price2, price3, price4, price5) = price2 THEN 'price2'
-                        WHEN MAX(price1, price2, price3, price4, price5) = price3 THEN 'price3'
-                        WHEN MAX(price1, price2, price3, price4, price5) = price4 THEN 'price4'
-                        ELSE 'price5'
-                    END AS max_column
-                FROM users;
-            ''')
+            cursor.execute(f'''
+                   SELECT 
+                       CASE
+                           WHEN MAX(price1, price2, price3, price4, price5) = price1 THEN 'price1'
+                           WHEN MAX(price1, price2, price3, price4, price5) = price2 THEN 'price2'
+                           WHEN MAX(price1, price2, price3, price4, price5) = price3 THEN 'price3'
+                           WHEN MAX(price1, price2, price3, price4, price5) = price4 THEN 'price4'
+                           ELSE 'price5'
+                       END AS max_column
+                   FROM users WHERE telegram_id = "{user_id}";
+               ''')
             max_column_name = cursor.fetchone()[0]
-            if result["price"] < max_value:
-                if result['price'] < best_choice['price']:
-                    best_choice = result
-                sql_insert_query = f"UPDATE users SET {max_column_name} = ? WHERE telegram_id = {id}"
-                try:
-                    cursor.execute(sql_insert_query, (result["price"],))
-                    conn.commit()
-                except sqlite3.Error as error:
-                    print("Ошибка при обновлении данных", error)
-                finally:
-                    cursor.close()
-                    conn.close()
+            if result['price'] > price:
+                if result["price"] < max_value:
+                    photo_url = 'photo_url' + max_column_name[-1]
+                    photo = result['photo']
+                    sql_insert_query = f'UPDATE users SET "{photo_url}" = "{photo}" WHERE telegram_id = "{user_id}"'
+                    try:
+                        cursor.execute(sql_insert_query)
+                        conn.commit()
+                    except sqlite3.Error as error:
+                        print("Ошибка при обновлении данных1", error)
+                    name = 'name' + max_column_name[-1]
+                    title = result['title']
+                    sql_insert_query = f'UPDATE users SET "{name}" = "{title}" WHERE telegram_id = "{user_id}"'
+                    try:
+                        cursor.execute(sql_insert_query)
+                        conn.commit()
+                    except sqlite3.Error as error:
+                        print("Ошибка при обновлении данных2", error)
+                    link = 'link' + max_column_name[-1]
+                    url = result['url']
+                    sql_insert_query = f'UPDATE users SET "{link}" = "{url}" WHERE telegram_id = "{user_id}"'
+                    try:
+                        cursor.execute(sql_insert_query)
+                        conn.commit()
+                    except sqlite3.Error as error:
+                        print("Ошибка при обновлении данных3", error)
+                    sql_insert_query = f"UPDATE users SET {max_column_name} = ? WHERE telegram_id = {user_id}"
+                    try:
+                        cursor.execute(sql_insert_query, (result["price"],))
+                        conn.commit()
+                    except sqlite3.Error as error:
+                        print("Ошибка при обновлении данных4", error)
+                    finally:
+                        cursor.close()
+                        conn.close()
                 CsvHandler(result_filename).write_to_csv_semicolon(result)
         except Exception as e:
             print(e)
 
-    return best_choice

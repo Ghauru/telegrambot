@@ -1,37 +1,36 @@
 from bs4 import BeautifulSoup
 import glob
 
-def get_pages() -> list:
-    return glob.glob('page.html')
+
+def get_pages(user_id) -> list:
+    return glob.glob(str(user_id) + '/page.html')
+
 
 def get_html(page: str):
     with open(page, 'r', encoding='utf-8') as f:
         return f.read()
 
-def parse_data(html: str) -> str:
+
+def parse_data(user_id, html: str) -> str:
     links = []
-    with open("page.html", encoding="utf8") as fp:
+    with open(str(user_id) + "/page.html", encoding="utf8") as fp:
         soup = BeautifulSoup(fp, 'html.parser')
-        '''div1 = soup.select("div.widget-search-result-container > div > div")
-        div1 = str(div1)
-        div1 = div1[div1.find("\""):div1.find(">")]
-        div1 = div1.split()[0][1:]'''
         products = soup.find("div", attrs={"class", "widget-search-result-container"}).find_all("a")
         for product in products:
             links.append(product.get('href').split('?')[0])
     return set(links)
 
 
-def parse_links():
-    pages = get_pages()
+def parse_links(user_id):
+    pages = get_pages(user_id)
 
     all_links = []
 
     for page in pages:
         html = get_html(page)
-        links = parse_data(html)
+        links = parse_data(user_id, html)
         all_links = all_links + list(links)
 
-    with open('product_links.txt', 'w', encoding='utf-8') as f:
+    with open(str(user_id) + '/product_links.txt', 'w', encoding='utf-8') as f:
         for link in all_links:
             f.write(str(link) + '\n')

@@ -4,18 +4,21 @@ from selenium.webdriver.common.by import By
 from multiprocessing.dummy import Pool
 import time
 import random
+import os
 
 
 class UseSelenium:
-    def __init__(self, urls: list, filename: str):
+    def __init__(self, urls: list, filename: str, user_id: int):
         self.urls = urls
         self.filename = filename
+        self.user_id = user_id
 
     def save_page(self, url):
 
         options = webdriver.ChromeOptions()
         options.add_argument("user-agent=Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:84.0) Gecko/20100101 Firefox/84.0")
         options.add_argument("--disable-blink-features=AutomationControlled")
+        options.add_argument("--headless")
 
         s = Service(executable_path="chromedriver.exe")
 
@@ -26,7 +29,8 @@ class UseSelenium:
             time.sleep(5)
             elem = driver.find_element(By.TAG_NAME, "pre").get_attribute('innerHTML')
             time.sleep(random.randrange(3, 10))
-            with open('products/' + self.filename, 'w', encoding='utf-8') as f:
+            print(self.filename)
+            with open(str(self.user_id) + '/products/' + self.filename, 'w', encoding='utf-8') as f:
                 f.write(elem)
         except Exception as ex:
             print(ex)
