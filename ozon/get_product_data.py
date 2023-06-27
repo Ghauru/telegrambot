@@ -17,22 +17,25 @@ def get_json(filename: str) -> dict:
 
 def parse_data(data: dict) -> dict:
     widgets = data.get('widgetStates')
+    image_link = None
+    title = None
+    price = None
     for key, value in widgets.items():
-        if 'webGallery' in key:
-            image_link = json.loads(value).get('coverImage')
-        if 'webProductHeading' in key:
-            title = json.loads(value).get('title')
-        if 'webSale' in key:
-            prices = json.loads(value).get('offers')[0]
-            if prices.get('price'):
-                price = re.search(r'[0-9]+', prices.get('price').replace(u'\u2009', ''))[0]
-            else:
-                price = 0
+        if value is not None:
+            if 'webGallery' in key:
+                image_link = json.loads(value).get('coverImage')
+            if 'webProductHeading' in key:
+                title = json.loads(value).get('title')
+            if'webPrice' in key:
+                if 'price' in json.loads(value):
+                    price = re.search(r'[0-9]+', json.loads(value)['price'].replace(u' ', '')).group()
+                else:
+                    price = 999999999
     layout = json.loads(data.get('layoutTrackingInfo'))
     url = layout.get('currentPageUrl')
     product = {
         'title': title,
-        'price': int(price),
+        'price': int(price) if price is not None else 999999999,
         'photo': image_link,
         'url': url
     }
@@ -43,6 +46,7 @@ def parse_product(user_id):
     result_filename = str(user_id) + '/ozon_result.csv'
     CsvHandler(result_filename).create_headers_csv_semicolon(['title', 'price', 'photo', 'url'])
     products = get_products(user_id)
+
     for product in products:
         try:
             product_json = get_json(product)
@@ -51,7 +55,8 @@ def parse_product(user_id):
             cursor = conn.cursor()
             cursor.execute(f'SELECT price FROM users WHERE telegram_id = "{user_id}"')
             price = cursor.fetchone()[0]
-            cursor.execute(f'SELECT MAX(price1, price2, price3, price4, price5) FROM users WHERE telegram_id = "{user_id}"')
+            cursor.execute(
+                f'SELECT MAX(price1, price2, price3, price4, price5) FROM users WHERE telegram_id = "{user_id}"')
             max_value = cursor.fetchone()[0]
             cursor.execute(f'''
                    SELECT 
@@ -78,7 +83,6 @@ def parse_product(user_id):
                     name = 'name' + max_column_name[-1]
                     title = result['title']
                     name = name.replace('\'', '').replace('"', '')
-                    print(name)
                     sql_insert_query = f'UPDATE users SET "{name}" = "{title}" WHERE telegram_id = "{user_id}"'
                     try:
                         cursor.execute(sql_insert_query)
@@ -105,4 +109,3 @@ def parse_product(user_id):
                 CsvHandler(result_filename).write_to_csv_semicolon(result)
         except Exception as e:
             print(e)
-
