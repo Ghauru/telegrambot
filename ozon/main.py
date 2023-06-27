@@ -16,3 +16,7 @@ def parse(url, user_id):
     df = pd.read_csv(str(user_id) +'/ozon_result.csv', sep=',', encoding='utf-8', on_bad_lines='skip')
     sorted_df = df.sort_values(by="price")
     sorted_df.to_csv(str(user_id) + '/ozon_result.csv', index=False)
+    df = pd.read_csv(str(user_id) +'/ozon_result.csv', sep=',', encoding='utf-8', on_bad_lines='skip')
+    df.drop_duplicates(inplace=True)
+    df.to_csv(str(user_id) + '/ozon_result.csv', index=False)
+

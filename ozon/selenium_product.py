@@ -4,13 +4,12 @@ from selenium.webdriver.common.by import By
 from multiprocessing.dummy import Pool
 import time
 import random
-import os
+import uuid
 
 
 class UseSelenium:
-    def __init__(self, urls: list, filename: str, user_id: int):
+    def __init__(self, urls: list, user_id: int):
         self.urls = urls
-        self.filename = filename
         self.user_id = user_id
 
     def save_page(self, url):
@@ -29,8 +28,8 @@ class UseSelenium:
             time.sleep(5)
             elem = driver.find_element(By.TAG_NAME, "pre").get_attribute('innerHTML')
             time.sleep(random.randrange(3, 10))
-            print(self.filename)
-            with open(str(self.user_id) + '/products/' + self.filename, 'w', encoding='utf-8') as f:
+            filename = 'product_' + str(uuid.uuid4()) + '.html'
+            with open(str(self.user_id) + '/products/' + filename, 'w', encoding='utf-8') as f:
                 f.write(elem)
         except Exception as ex:
             print(ex)

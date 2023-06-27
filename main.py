@@ -14,6 +14,7 @@ sqlite_create_table = 'CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY,
                       ' link1 TEXT, link2 TEXT, link3 TEXT, link4 TEXT, link5 TEXT)'
 cursor = sqlite_connect.cursor()
 cursor.execute(sqlite_create_table)
+cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS url_index ON users (link1, link2, link3, link4, link5)')
 cursor.close()
 
 bot = telebot.TeleBot(config.TG_TOKEN)
@@ -34,8 +35,9 @@ def user_to_database(message):
 
 
 def update_price(message):
-    if message.text.lower() != 'нет':
-        sql_insert_query = f'UPDATE users SET price = "{message.text}", price1 = "{999999999}", price2 = "{999999999}", ' \
+    if message.text.lower() != 'нет' and message.text.isnumeric():
+        text = int(message.text)
+        sql_insert_query = f'UPDATE users SET price = "{text}", price1 = "{999999999}", price2 = "{999999999}", ' \
                            f'price3 = "{999999999}", price4 = "{999999999}", price5 = "{999999999}",' \
                            f'photo_url1 = " ", photo_url2 = " ", photo_url3 = " ", photo_url4 = " ", photo_url5 = " ",' \
                            f'name1 = " ", name2 = " ", name3 = " ", name4 = " ", name5 = " ",' \
@@ -62,7 +64,7 @@ def start(message):
     user_id = message.from_user.id
     try:
         os.makedirs(str(user_id) + '/products')
-    except Exception:
+    except:
         pass
     os.chdir("C:\\Users\\rules\\PycharmProjects\\telegrambot")
     res = cur.execute(f'SELECT name FROM users WHERE telegram_id="{user_id}"')
@@ -78,7 +80,7 @@ def bot_message(message):
     user_id = message.from_user.id
     try:
         os.makedirs(str(user_id) + '/products')
-    except Exception:
+    except:
         pass
     os.chdir("C:\\Users\\rules\\PycharmProjects\\telegrambot")
     bot.reply_to(message, "Помогите мне улучшить результаты поиска.")
@@ -128,7 +130,6 @@ def bot_message(message):
     cur.execute(f'SELECT price5 FROM users WHERE telegram_id = "{user_id}"')
     price5 = cur.fetchone()[0]
     photo_list = [photo1, photo2, photo3, photo4, photo5]
-    print(''.join(photo_list))
     if not (''.join(photo_list).isspace()):
         media = []
         for photo in photo_list:
@@ -138,8 +139,8 @@ def bot_message(message):
                 link1, str(price1), name2, link2, str(price2), name3, link3, str(price3), name4, link4, str(price4),
                 name5, link5, str(price5))
         bot.send_message(message.chat.id, text, reply_to_message_id=message.message_id)
-        bot.send_message(message.chat.id, 'CSV файл с остальными результатами:')
-        with open(message.from_user.id + "/ozon_result.csv", "rb") as file:
+        bot.send_message(message.chat.id, 'CSV файл со всеми результатами:')
+        with open(str(user_id) + "/ozon_result.csv", "rb") as file:
             bot.send_document(message.chat.id, file)
     else:
         bot.send_message(message.chat.id, 'Вы ввели слишком большую начальную цену для поиска, либо таких товаров не нашлось')

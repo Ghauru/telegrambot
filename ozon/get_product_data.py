@@ -45,7 +45,7 @@ def parse_product(user_id):
     products = get_products(user_id)
     for product in products:
         try:
-            product_json = get_json(user_id + '/' + product)
+            product_json = get_json(product)
             result = parse_data(product_json)
             conn = sqlite3.connect('users.db')
             cursor = conn.cursor()
