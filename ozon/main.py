@@ -8,6 +8,16 @@ import pandas as pd
 def parse(url, user_id):
     url = "https://www.ozon.ru/search/?from_global=true&text=" + '+'.join(url.split())
 
+    MAX_PAGE = 10
+    i = 1
+    while i <= MAX_PAGE:
+        filename = str(user_id) + f'/pages/page_' + str(i) + '.html'
+        if i == 1:
+            UseSelenium(url, filename).save_page()
+        else:
+            url_param = url + '?page=' + str(i)
+            UseSelenium(url_param, filename).save_page()
+        i += 1
     filename = str(user_id) + '/page.html'
     UseSelenium(url, filename).save_page()
     parse_links(user_id)

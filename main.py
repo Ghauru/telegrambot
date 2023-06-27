@@ -4,6 +4,7 @@ import sqlite3
 import config
 import os
 import shutil
+import requests
 
 sqlite_connect = sqlite3.connect('users.db', check_same_thread=False)
 sqlite_create_table = 'CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, telegram_id INTEGER UNIQUE,' \
@@ -35,11 +36,11 @@ def user_to_database(message):
 
 
 def update_price(message):
-    if message.text.lower() != 'нет' and message.text.isnumeric():
+    if message.text.isnumeric():
         text = int(message.text)
         sql_insert_query = f'UPDATE users SET price = "{text}", price1 = "{999999999}", price2 = "{999999999}", ' \
                            f'price3 = "{999999999}", price4 = "{999999999}", price5 = "{999999999}",' \
-                           f'photo_url1 = " ", photo_url2 = " ", photo_url3 = " ", photo_url4 = " ", photo_url5 = " ",' \
+                           f'photo_url1 = " ", photo_url2 = " ", photo_url3 = " ", photo_url4 = " ", photo_url5 = " ",'\
                            f'name1 = " ", name2 = " ", name3 = " ", name4 = " ", name5 = " ",' \
                            f'link1 = " ", link2 = " ", link3 = " ", link4 = " ", link5 = " "' \
                            f' WHERE telegram_id = "{message.from_user.id}"'
@@ -47,7 +48,7 @@ def update_price(message):
     else:
         sql_insert_query = f'UPDATE users SET price = "{0}", price1 = "{999999999}", price2 = "{999999999}", ' \
                            f'price3 = "{999999999}", price4 = "{999999999}", price5 = "{999999999}",' \
-                           f'photo_url1 = " ", photo_url2 = " ", photo_url3 = " ", photo_url4 = " ", photo_url5 = " ",' \
+                           f'photo_url1 = " ", photo_url2 = " ", photo_url3 = " ", photo_url4 = " ", photo_url5 = " ",'\
                            f'name1 = " ", name2 = " ", name3 = " ", name4 = " ", name5 = " ",' \
                            f'link1 = " ", link2 = " ", link3 = " ", link4 = " ", link5 = " "' \
                            f'WHERE telegram_id = "{message.from_user.id}"'
@@ -62,11 +63,6 @@ def start(message):
     user_to_database(message)
     cur = sqlite_connect.cursor()
     user_id = message.from_user.id
-    try:
-        os.makedirs(str(user_id) + '/products')
-    except:
-        pass
-    os.chdir("C:\\Users\\rules\\PycharmProjects\\telegrambot")
     res = cur.execute(f'SELECT name FROM users WHERE telegram_id="{user_id}"')
     name = res.fetchone()[0]
     cur.close()
@@ -80,12 +76,28 @@ def bot_message(message):
     user_id = message.from_user.id
     try:
         os.makedirs(str(user_id) + '/products')
+        os.makedirs(str(user_id) + '/pages')
     except:
         pass
     os.chdir("C:\\Users\\rules\\PycharmProjects\\telegrambot")
     bot.reply_to(message, "Помогите мне улучшить результаты поиска.")
-    msg = bot.reply_to(message, f"От какой цены начать поиск? Отправьте <b>Нет</b>, если хотите не учитывать цену", parse_mode='html')
+    msg = bot.reply_to(message, f"От какой цены начать поиск? Отправьте <b>Нет</b>, если хотите не учитывать цену."
+                                f" Учтите, что без указания цены поиск может быть неточным", parse_mode='html')
     bot.register_next_step_handler(msg, price)
+    url = f'https://api.telegram.org/bot{config.TG_TOKEN}/getUpdates'
+    timeout = 300
+
+    try:
+        response = requests.get(url, timeout=timeout)
+        response.raise_for_status()
+    except requests.exceptions.ReadTimeout as e:
+        print(f"Ошибка чтения данных: {e}")
+    except requests.exceptions.HTTPError as e:
+        print(f"Ошибка HTTP: {e}")
+    except requests.exceptions.RequestException as e:
+        print(f"Ошибка запроса: {e}")
+    else:
+        print(response.json())
     parse(message.text, message.from_user.id)
     bot.send_message(message.chat.id, "Лучшие 5 результатов: ")
     cur = sqlite_connect.cursor()
@@ -143,7 +155,8 @@ def bot_message(message):
         with open(str(user_id) + "/ozon_result.csv", "rb") as file:
             bot.send_document(message.chat.id, file)
     else:
-        bot.send_message(message.chat.id, 'Вы ввели слишком большую начальную цену для поиска, либо таких товаров не нашлось')
+        bot.send_message(message.chat.id, 'Вы ввели слишком большую начальную цену для поиска,'
+                                          ' либо таких товаров не нашлось')
     cur.close()
     shutil.rmtree(str(user_id))
 

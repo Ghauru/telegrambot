@@ -3,7 +3,7 @@ import glob
 
 
 def get_pages(user_id) -> list:
-    return glob.glob(str(user_id) + '/page.html')
+    return glob.glob(str(user_id) + '/pages/*.html')
 
 
 def get_html(page: str):
@@ -11,13 +11,12 @@ def get_html(page: str):
         return f.read()
 
 
-def parse_data(user_id, html: str) -> str:
+def parse_data(html: str) -> str:
     links = []
-    with open(str(user_id) + "/page.html", encoding="utf8") as fp:
-        soup = BeautifulSoup(fp, 'html.parser')
-        products = soup.find("div", attrs={"class", "widget-search-result-container"}).find_all("a")
-        for product in products:
-            links.append(product.get('href').split('?')[0])
+    soup = BeautifulSoup(html, 'html.parser')
+    products = soup.find("div", attrs={"class", "widget-search-result-container"}).find_all("a")
+    for product in products:
+        links.append(product.get('href').split('?')[0])
     return set(links)
 
 
@@ -28,7 +27,7 @@ def parse_links(user_id):
 
     for page in pages:
         html = get_html(page)
-        links = parse_data(user_id, html)
+        links = parse_data(html)
         all_links = all_links + list(links)
 
     with open(str(user_id) + '/product_links.txt', 'w', encoding='utf-8') as f:

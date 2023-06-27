@@ -66,7 +66,7 @@ def parse_product(user_id):
                ''')
             max_column_name = cursor.fetchone()[0]
             if result['price'] > price:
-                if result["price"] < max_value:
+                if result['price'] < max_value:
                     photo_url = 'photo_url' + max_column_name[-1]
                     photo = result['photo']
                     sql_insert_query = f'UPDATE users SET "{photo_url}" = "{photo}" WHERE telegram_id = "{user_id}"'
@@ -77,6 +77,8 @@ def parse_product(user_id):
                         print("Ошибка при обновлении данных1", error)
                     name = 'name' + max_column_name[-1]
                     title = result['title']
+                    name = name.replace('\'', '').replace('"', '')
+                    print(name)
                     sql_insert_query = f'UPDATE users SET "{name}" = "{title}" WHERE telegram_id = "{user_id}"'
                     try:
                         cursor.execute(sql_insert_query)
