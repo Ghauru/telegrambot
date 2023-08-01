@@ -1,4 +1,4 @@
 import os
 
 
-TG_TOKEN = os.environ.get('TELEGRAM_TOKEN2')
+TG_TOKEN = os.environ.get('TELEGRAM_TOKEN1')

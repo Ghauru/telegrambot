@@ -40,6 +40,6 @@ class UseSelenium:
     def _save_page_wrapper(self, url):
         return self.save_page(url)
 
-    def multi_save(self):
+    async def multi_save(self):
         p = Pool(processes=10)
         p.map(self._save_page_wrapper, self.urls)

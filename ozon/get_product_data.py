@@ -42,7 +42,7 @@ def parse_data(data: dict) -> dict:
     return product
 
 
-def parse_product(user_id):
+async def parse_product(user_id):
     result_filename = str(user_id) + '/ozon_result.csv'
     CsvHandler(result_filename).create_headers_csv_semicolon(['title', 'price', 'photo', 'url'])
     products = get_products(user_id)
@@ -106,6 +106,6 @@ def parse_product(user_id):
                     finally:
                         cursor.close()
                         conn.close()
-                CsvHandler(result_filename).write_to_csv_semicolon(result)
+            CsvHandler(result_filename).write_to_csv_semicolon(result)
         except Exception as e:
             print(e)

@@ -1,3 +1,5 @@
+from typing import List, Any
+
 from bs4 import BeautifulSoup
 import glob
 
@@ -11,16 +13,22 @@ def get_html(page: str):
         return f.read()
 
 
-def parse_data(html: str) -> str:
+def parse_data(html: str) -> set[Any]:
     links = []
     soup = BeautifulSoup(html, 'html.parser')
-    products = soup.find("div", attrs={"class", "widget-search-result-container"}).find_all("a")
-    for product in products:
-        links.append(product.get('href').split('?')[0])
-    return set(links)
+    try:
+        products = soup.find("div", attrs={"class", "widget-search-result-container"}).find_all("a")
+        for product in products:
+            links.append(product.get('href').split('?')[0])
+        return set(links)
+    except AttributeError:
+        if links is None:
+            return set([])
+        else:
+            return set(links)
 
 
-def parse_links(user_id):
+async def parse_links(user_id):
     pages = get_pages(user_id)
 
     all_links = []
