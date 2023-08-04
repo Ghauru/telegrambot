@@ -1,3 +1,5 @@
+import asyncio
+
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -41,5 +43,7 @@ class UseSelenium:
         return self.save_page(url)
 
     async def multi_save(self):
+        await asyncio.sleep(0.1)
         p = Pool(processes=10)
         p.map(self._save_page_wrapper, self.urls)
+        await asyncio.sleep(0.1)

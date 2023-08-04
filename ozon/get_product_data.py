@@ -1,3 +1,4 @@
+import asyncio
 import json
 import glob
 import re
@@ -43,6 +44,8 @@ def parse_data(data: dict) -> dict:
 
 
 async def parse_product(user_id):
+    await asyncio.sleep(0.1)
+
     result_filename = str(user_id) + '/ozon_result.csv'
     CsvHandler(result_filename).create_headers_csv_semicolon(['title', 'price', 'photo', 'url'])
     products = get_products(user_id)
@@ -109,3 +112,4 @@ async def parse_product(user_id):
             CsvHandler(result_filename).write_to_csv_semicolon(result)
         except Exception as e:
             print(e)
+    await asyncio.sleep(0.1)

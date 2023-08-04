@@ -1,7 +1,8 @@
-from typing import List, Any
+import asyncio
+import glob
+from typing import Any
 
 from bs4 import BeautifulSoup
-import glob
 
 
 def get_pages(user_id) -> list:
@@ -29,6 +30,8 @@ def parse_data(html: str) -> set[Any]:
 
 
 async def parse_links(user_id):
+    await asyncio.sleep(0.1)
+
     pages = get_pages(user_id)
 
     all_links = []
@@ -41,3 +44,4 @@ async def parse_links(user_id):
     with open(str(user_id) + '/product_links.txt', 'w', encoding='utf-8') as f:
         for link in all_links:
             f.write(str(link) + '\n')
+    await asyncio.sleep(0.1)
